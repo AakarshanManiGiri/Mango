@@ -1,0 +1,42 @@
+{
+  "name": "mango",
+  "version": "1.0.0",
+  "description": "Open-Source Manga reader for whoever wants it.",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AakarshanManiGiri/Mango.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/AakarshanManiGiri/Mango/issues"
+  },
+  "homepage": "https://github.com/AakarshanManiGiri/Mango#readme",
+  "dependencies": {
+    "@types/node": "^25.9.1",
+    "@types/react": "^19.2.15",
+    "@types/react-dom": "^19.2.3",
+    "axios": "^1.16.1",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
+    "react-router-dom": "^7.16.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.0",
+    "@vitejs/plugin-react": "^6.0.2",
+    "autoprefixer": "^10.5.0",
+    "postcss": "^8.5.15",
+    "tailwindcss": "^4.3.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.14"
+  }
+}
