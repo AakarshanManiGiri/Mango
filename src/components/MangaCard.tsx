@@ -1,52 +1,28 @@
 import React from 'react';
-import { Manga } from '@/types/mangadex';
+import { MangaHookListItem } from '@/types/mangahook';
 
 interface MangaCardProps {
-  manga: Manga;
-  onClick?: (mangaId: string) => void;
+  manga: MangaHookListItem;
+  onClick: (id: string) => void;
 }
 
 export const MangaCard: React.FC<MangaCardProps> = ({ manga, onClick }) => {
-  const handleClick = () => {
-    if (onClick) onClick(manga.id);
-  };
-
-  const getCoverImageUrl = () => {
-    const coverRelation = manga.relationships.find((r) => r.type === 'cover_art');
-    if (coverRelation) {
-      return `https://uploads.mangadex.org/covers/${manga.id}/${coverRelation.attributes.fileName}`;
-    }
-    return '/placeholder.svg';
-  };
-
-  const getTitle = () => {
-    const title = manga.attributes.title;
-    return title['en'] || Object.values(title)[0] || 'Unknown Title';
-  };
-
   return (
-    <div
-      onClick={handleClick}
-      className="cursor-pointer rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow bg-gray-800"
+    <div 
+      className="group relative rounded-xl overflow-hidden cursor-pointer transition transform hover:-translate-y-1 hover:shadow-xl bg-zinc-900 border border-zinc-800"
+      onClick={() => onClick(manga.id)}
     >
-      <div className="aspect-[3/4] overflow-hidden bg-gray-700">
-        <img
-          src={getCoverImageUrl()}
-          alt={getTitle()}
-          className="w-full h-full object-cover"
-          onError={(e) => {
-            const img = e.target as HTMLImageElement;
-            img.src = '/placeholder.svg';
-          }}
+      <div className="aspect-[2/3] overflow-hidden">
+        <img 
+          src={manga.image} 
+          alt={manga.title} 
+          className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+          loading="lazy"
         />
       </div>
       <div className="p-3">
-        <h3 className="text-sm font-semibold text-white truncate">
-          {getTitle()}
-        </h3>
-        <p className="text-xs text-gray-400 mt-1">
-          {manga.attributes.status}
-        </p>
+        <h3 className="font-semibold text-sm line-clamp-2 text-zinc-200 group-hover:text-white">{manga.title}</h3>
+        <p className="text-xs text-zinc-500 mt-1">{manga.chapter}</p>
       </div>
     </div>
   );

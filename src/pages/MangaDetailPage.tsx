@@ -1,152 +1,63 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getMangaById, getChapters } from '@/api/mangadex';
-import { Manga, Chapter } from '@/types/mangadex';
+import useManga from '@/hooks/useManga';
 
 export const MangaDetailPage: React.FC = () => {
-  const { mangaId } = useParams<{ mangaId: string }>();
-  const [manga, setManga] = useState<Manga | null>(null);
-  const [chapters, setChapters] = useState<Chapter[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { id } = useParams<{ id: string }>();
+  const manga = useManga(id || '');
   const navigate = useNavigate();
 
-  useEffect(() => {
-    if (mangaId) {
-      loadMangaDetails();
-    }
-  }, [mangaId]);
-
-  const loadMangaDetails = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const mangaData = await getMangaById(mangaId!);
-      setManga(mangaData);
-
-      const chaptersResponse = await getChapters(mangaId!);
-      const chaptersData = Array.isArray(chaptersResponse.data)
-        ? chaptersResponse.data
-        : [chaptersResponse.data];
-      setChapters(chaptersData);
-    } catch (err) {
-      setError('Failed to load manga details');
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const getCoverImageUrl = () => {
-    if (!manga) return '/placeholder.svg';
-    const coverRelation = manga.relationships.find((r) => r.type === 'cover_art');
-    if (coverRelation) {
-      return `https://uploads.mangadex.org/covers/${manga.id}/${coverRelation.attributes.fileName}`;
-    }
-    return '/placeholder.svg';
-  };
-
-  const getTitle = () => {
-    if (!manga) return 'Unknown';
-    const title = manga.attributes.title;
-    return title['en'] || Object.values(title)[0] || 'Unknown Title';
-  };
-
-  const getDescription = () => {
-    if (!manga) return '';
-    const desc = manga.attributes.description;
-    return desc['en'] || Object.values(desc)[0] || 'No description available';
-  };
-
-  const handleChapterClick = (chapterId: string) => {
-    navigate(`/read/${chapterId}`);
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center text-white">
-        <p>Loading manga details...</p>
-      </div>
-    );
-  }
-
-  if (error || !manga) {
-    return (
-      <div className="min-h-screen bg-gray-900 text-white">
-        <div className="container mx-auto px-4 py-8">
-          <button
-            onClick={() => navigate('/')}
-            className="text-blue-400 hover:text-blue-300"
-          >
-            ← Back to Home
-          </button>
-          <div className="mt-4 bg-red-900 text-red-100 p-4 rounded-lg">
-            {error}
-          </div>
-        </div>
-      </div>
-    );
-  }
+  if (!manga) return <div className="min-h-screen bg-[#09090b] text-white flex justify-center items-center">Loading...</div>;
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
+    <div className="min-h-screen bg-[#09090b] text-[#fafafa]">
       <div className="container mx-auto px-4 py-8">
-        <button
-          onClick={() => navigate('/')}
-          className="mb-8 text-blue-400 hover:text-blue-300"
-        >
-          Back to Home
-        </button>
-
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          <div className="md:col-span-1">
-            <img
-              src={getCoverImageUrl()}
-              alt={getTitle()}
-              className="w-full rounded-lg shadow-lg"
-              onError={(e) => {
-                const img = e.target as HTMLImageElement;
-                img.src = '/placeholder.svg';
-              }}
-            />
-            <div className="mt-4">
-              <p className="text-sm text-gray-400">Status</p>
-              <p className="font-semibold capitalize">
-                {manga.attributes.status}
-              </p>
-            </div>
+        <button onClick={() => navigate(-1)} className="mb-6 text-zinc-400 hover:text-white transition">← Back</button>
+        <div className="flex flex-col md:flex-row gap-8">
+          <div className="md:w-1/3 lg:w-1/4">
+            <img src={manga.imageUrl} alt={manga.name} className="w-full rounded-xl shadow-2xl border border-zinc-800" />
           </div>
-
-          <div className="md:col-span-3">
-            <h1 className="text-4xl font-bold mb-2">{getTitle()}</h1>
-            <p className="text-gray-400 mb-6">{getDescription()}</p>
-
-            <div className="mb-8">
-              <h2 className="text-xl font-bold mb-4">Chapters ({chapters.length})</h2>
-              <div className="space-y-2 max-h-96 overflow-y-auto">
-                {chapters.map((chapter) => (
-                  <div
-                    key={chapter.id}
-                    onClick={() => handleChapterClick(chapter.id)}
-                    className="p-3 bg-gray-800 hover:bg-gray-700 rounded cursor-pointer transition-colors"
-                  >
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <p className="font-semibold">
-                          {chapter.attributes.title ||
-                            `Chapter ${chapter.attributes.chapter}`}
-                        </p>
-                        <p className="text-sm text-gray-400">
-                          {new Date(
-                            chapter.attributes.publishAt
-                          ).toLocaleDateString()}
-                        </p>
-                      </div>
-                      <span className="text-blue-400"></span>
-                    </div>
-                  </div>
-                ))}
+          <div className="md:w-2/3 lg:w-3/4 flex flex-col">
+            <h1 className="text-4xl font-bold mb-2">{manga.name}</h1>
+            <p className="text-zinc-400 mb-6 font-medium">{manga.author}</p>
+            
+            <div className="flex flex-wrap gap-2 mb-6">
+              {manga.genres.map(tag => (
+                <span key={tag} className="px-3 py-1 bg-zinc-900 border border-zinc-800 rounded-full text-xs font-medium text-zinc-300">
+                  {tag}
+                </span>
+              ))}
+            </div>
+            
+            <div className="mb-8 p-4 bg-zinc-900/50 rounded-xl border border-zinc-800/50">
+              <div className="grid grid-cols-3 gap-4 text-center">
+                <div>
+                  <p className="text-xs text-zinc-500 uppercase tracking-wider">Status</p>
+                  <p className="font-medium text-zinc-200 mt-1">{manga.status}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-zinc-500 uppercase tracking-wider">Views</p>
+                  <p className="font-medium text-zinc-200 mt-1">{manga.view}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-zinc-500 uppercase tracking-wider">Updated</p>
+                  <p className="font-medium text-zinc-200 mt-1">{manga.updated}</p>
+                </div>
               </div>
+            </div>
+
+            <h2 className="text-2xl font-bold mb-4 border-b border-zinc-800 pb-2">Chapters</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
+              {manga.chapterList.map(ch => (
+                <div 
+                  key={ch.id} 
+                  className="bg-zinc-900 border border-zinc-800 p-4 rounded-lg cursor-pointer hover:bg-zinc-800 transition flex justify-between items-center"
+                  onClick={() => navigate(`/read/${id}/${ch.id}`)}
+                >
+                  <span className="font-medium">{ch.name}</span>
+                  <span className="text-xs text-zinc-500">{ch.view}</span>
+                </div>
+              ))}
             </div>
           </div>
         </div>
